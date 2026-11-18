@@ -32,6 +32,34 @@
         }
         if (methods) free(methods);
     }
+    // Report class names and view geometry only. Do not read UILabel text,
+    // message contents, accessibility labels, account names or image data.
+    [report appendString:@"\\n\\n=== Foreground UIView hierarchy (class + bounds only) ===\\n"];
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]] ||
+            scene.activationState != UISceneActivationStateForegroundActive) continue;
+        for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+            if (!window.isKeyWindow) continue;
+            NSMutableArray<NSDictionary *> *pending=[NSMutableArray arrayWithObject:@{@"view":window,@"depth":@0}];
+            NSUInteger exported=0;
+            while (pending.count && exported<350) {
+                NSDictionary *entry=pending.lastObject;
+                [pending removeLastObject];
+                UIView *view=entry[@"view"];
+                NSUInteger depth=[entry[@"depth"] unsignedIntegerValue];
+                [report appendFormat:@"%@%@ frame=%@ hidden=%@\\n",
+                     [@"" stringByPaddingToLength:MIN(depth,15)*2 withString:@" " startingAtIndex:0],
+                     NSStringFromClass([view class]), NSStringFromCGRect(view.frame),
+                     view.hidden ? @"YES" : @"NO"];
+                exported++;
+                if (depth>=14) continue;
+                for (UIView *child in [view.subviews reverseObjectEnumerator]) {
+                    [pending addObject:@{@"view":child,@"depth":@(depth+1)}];
+                }
+            }
+            if (pending.count) [report appendString:@"[truncated at 350 views]\\n"];
+        }
+    }
     NSString *path=[NSTemporaryDirectory() stringByAppendingPathComponent:@"RiseInsta-Runtime-Classes.txt"];
     return [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:error] ? [NSURL fileURLWithPath:path] : nil;
 }
