@@ -1,0 +1,33 @@
+name: Build Rise Insta
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Theos
+        uses: Randomblock1/theos-action@v1
+      - name: Build tweak and package
+        run: |
+          make clean package FINALPACKAGE=1
+          find .theos -type f -name 'RiseInsta.dylib' -print
+          find packages -type f -name '*.deb' -print
+      - name: Collect artifacts
+        if: success()
+        run: |
+          mkdir -p release
+          find .theos -type f -name 'RiseInsta.dylib' -exec cp -v {} release/ \;
+          find packages -type f -name '*.deb' -exec cp -v {} release/ \;
+          test -f release/RiseInsta.dylib
+      - name: Upload dylib and deb
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RiseInsta-build
+          path: release/*
