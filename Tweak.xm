@@ -1,12 +1,16 @@
 #import <UIKit/UIKit.h>
 #import "Sources/RiseInstaUI.h"
-%hook UIApplication
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+
+// Temporary version-independent entry point while Instagram view hooks are being mapped.
+// Install only when an actual Instagram view has appeared.
+%hook UIViewController
+- (void)viewDidAppear:(BOOL)animated {
     %orig;
-    dispatch_async(dispatch_get_main_queue(), ^{ [RiseInstaUI installEntryPoint]; });
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [RiseInstaUI installEntryPoint];
+        });
+    });
 }
 %end
-
-%ctor {
-    dispatch_async(dispatch_get_main_queue(), ^{ [RiseInstaUI installEntryPoint]; });
-}
