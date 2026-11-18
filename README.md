@@ -7,7 +7,7 @@ iOS Theos tweak built from scratch for Instagram.
 - 11 categories including Downloads, Ghost, Messages, Reels, Comments, Profile, AI, Customization, Account Features, Developer & Employee, Diagnostics
 - Full **feature catalog** in the UI: unfinished options explicitly say "Not connected — needs an Instagram hook" instead of falsely claiming they work
 - Read-only Objective-C runtime class/selector report, shareable to Files/AirDrop
-- Temporary floating **R** button entry point. Replace with a version-specific Instagram profile/settings hook after diagnosis
+- Open Rise Insta by holding **three fingers** on the Instagram screen for ~0.8 seconds (no floating button). Replace with a native profile/settings entry after diagnosis
 - Namespaced project-owned classes and keys use RiseInsta, not Beegram
 
 ## Not yet implemented
@@ -21,4 +21,4 @@ make package
 No compilation or on-device testing has been performed here yet. The GitHub repository contains source, **not a compiled .dylib**.
 
 ## Diagnostics
-Tap **Diagnostics → Export Runtime Classes**. Output contains class and method names filtered by Instagram-style prefixes only, capped for memory/runtime safety; it does not intentionally export user account data, message text, passwords, or network tokens.
+Open any Instagram page, hold 3 fingers, then tap Diagnostics → Export Runtime Classes. The report also includes a bounded foreground view tree (class names, frames and visibility, no view text). The user should review the report before sharing.\n\nTap **Diagnostics → Export Runtime Classes**. Output contains class and method names filtered by Instagram-style prefixes only, capped for memory/runtime safety; it does not intentionally export user account data, message text, passwords, or network tokens.
