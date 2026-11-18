@@ -3,6 +3,8 @@
 #import <objc/runtime.h>
 @implementation RiseInstaDiagnostics
 + (NSURL *)exportReport:(NSError **)error {
+    NSString *bundleID = NSBundle.mainBundle.bundleIdentifier ?: @"unknown";
+    NSString *appVersion = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"unknown";
     unsigned int count = 0;
     Class *classes = objc_copyClassList(&count);
     if (!classes) return nil;
