@@ -130,37 +130,43 @@
     [controller presentViewController:nav animated:YES completion:nil];
 }
 + (void)installEntryPoint {
-    static BOOL installed=NO;
-    if (installed) return;
-    UIWindow *window=nil;
+    // No floating button: recognize a 3-finger hold on the foreground Instagram window.
     for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-        if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState!=UISceneActivationStateForegroundActive) continue;
-        for (UIWindow *candidate in ((UIWindowScene *)scene).windows) {
-            if (candidate.isKeyWindow) { window=candidate; break; }
+        if (![scene isKindOfClass:[UIWindowScene class]] ||
+            scene.activationState != UISceneActivationStateForegroundActive) continue;
+        for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+            if (!window.isKeyWindow) continue;
+            BOOL found=NO;
+            for (UIGestureRecognizer *recognizer in window.gestureRecognizers) {
+                if ([recognizer.name isEqualToString:@"RiseInstaThreeFingerHold"]) { found=YES; break; }
+            }
+            if (found) continue;
+            UILongPressGestureRecognizer *hold=[[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(riseinsta_threeFingerHold:)];
+            hold.numberOfTouchesRequired=3;
+            hold.minimumPressDuration=0.8;
+            hold.cancelsTouchesInView=NO;
+            hold.name=@"RiseInstaThreeFingerHold";
+            [window addGestureRecognizer:hold];
         }
-        if (window) break;
     }
-    if (!window) return;
-    UIButton *button=[UIButton buttonWithType:UIButtonTypeSystem];
-    button.frame=CGRectMake(12,130,44,44);
-    button.layer.cornerRadius=22;
-    button.backgroundColor=[UIColor colorWithRed:.83 green:.15 blue:.47 alpha:.92];
-    [button setTitle:@"R" forState:UIControlStateNormal];
-    [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-    button.titleLabel.font=[UIFont boldSystemFontOfSize:21];
-    [button addTarget:self action:@selector(riseinsta_openFromButton:) forControlEvents:UIControlEventTouchUpInside];
-    [window addSubview:button];
-    installed=YES;
 }
-+ (void)riseinsta_openFromButton:(UIButton *)sender {
-    UIResponder *responder=sender;
-    while (responder && ![responder isKindOfClass:UIViewController.class]) responder=responder.nextResponder;
-    UIViewController *vc=(UIViewController *)responder;
-    if (!vc) {
-        UIWindow *window=sender.window;
-        vc=window.rootViewController;
-        while (vc.presentedViewController) vc=vc.presentedViewController;
++ (UIViewController *)riseinsta_visibleControllerFrom:(UIViewController *)vc {
+    if (!vc) return nil;
+    if (vc.presentedViewController) return [self riseinsta_visibleControllerFrom:vc.presentedViewController];
+    if ([vc isKindOfClass:[UINavigationController class]]) {
+        return [self riseinsta_visibleControllerFrom:((UINavigationController *)vc).visibleViewController] ?: vc;
     }
+    if ([vc isKindOfClass:[UITabBarController class]]) {
+        return [self riseinsta_visibleControllerFrom:((UITabBarController *)vc).selectedViewController] ?: vc;
+    }
+    return vc;
+}
++ (void)riseinsta_threeFingerHold:(UILongPressGestureRecognizer *)gesture {
+    if (gesture.state != UIGestureRecognizerStateBegan) return;
+    UIWindow *window=(UIWindow *)gesture.view;
+    UIViewController *vc=[self riseinsta_visibleControllerFrom:window.rootViewController];
+    if (!vc || [vc isKindOfClass:[RiseInstaMenuController class]] ||
+        [vc.navigationController.viewControllers.firstObject isKindOfClass:[RiseInstaMenuController class]]) return;
     [self presentFrom:vc];
 }
 @end
