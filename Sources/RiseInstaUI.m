@@ -147,8 +147,41 @@
             hold.cancelsTouchesInView=NO;
             hold.name=@"RiseInstaThreeFingerHold";
             [window addGestureRecognizer:hold];
+
+            // Fallback gesture for versions with competing long-press recognizers:
+            // tap twice using three fingers.
+            UITapGestureRecognizer *tripleTap=[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(riseinsta_threeFingerTap:)];
+            tripleTap.numberOfTouchesRequired=3;
+            tripleTap.numberOfTapsRequired=2;
+            tripleTap.cancelsTouchesInView=NO;
+            tripleTap.name=@"RiseInstaThreeFingerDoubleTap";
+            [window addGestureRecognizer:tripleTap];
+
+            // Temporary visible proof that the dylib was injected, plus a
+            // one-tap recovery entry. Remove when the profile hook is known.
+            UIButton *fallback=[UIButton buttonWithType:UIButtonTypeSystem];
+            fallback.accessibilityIdentifier=@"RiseInstaDebugEntry";
+            fallback.frame=CGRectMake(8, MAX(52,window.safeAreaInsets.top+8), 34,34);
+            fallback.layer.cornerRadius=17;
+            fallback.backgroundColor=[UIColor colorWithRed:.82 green:.17 blue:.46 alpha:.95];
+            [fallback setTitle:@"RI" forState:UIControlStateNormal];
+            [fallback setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+            fallback.titleLabel.font=[UIFont boldSystemFontOfSize:12];
+            [fallback addTarget:self action:@selector(riseinsta_openFromDebugButton:) forControlEvents:UIControlEventTouchUpInside];
+            [window addSubview:fallback];
         }
     }
+}
++ (void)riseinsta_openFromDebugButton:(UIButton *)sender {
+    UIWindow *window=sender.window;
+    UIViewController *vc=[self riseinsta_visibleControllerFrom:window.rootViewController];
+    if (vc) [self presentFrom:vc];
+}
++ (void)riseinsta_threeFingerTap:(UITapGestureRecognizer *)tap {
+    if (tap.state != UIGestureRecognizerStateRecognized) return;
+    UIWindow *window=(UIWindow *)tap.view;
+    UIViewController *vc=[self riseinsta_visibleControllerFrom:window.rootViewController];
+    if (vc) [self presentFrom:vc];
 }
 + (UIViewController *)riseinsta_visibleControllerFrom:(UIViewController *)vc {
     if (!vc) return nil;
