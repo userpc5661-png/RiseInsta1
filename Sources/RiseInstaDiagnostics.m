@@ -23,7 +23,7 @@
     free(classes);
     [names sortUsingSelector:@selector(compare:)];
     NSUInteger limit=MIN((NSUInteger)1200,names.count);
-    NSMutableString *report=[NSMutableString stringWithFormat:@"Rise Insta Runtime Class Report\nGenerated: %@\nMatching classes: %lu\nExported: %lu\nNames alone do not prove working hooks or server permissions.\n", [NSDate date],(unsigned long)names.count,(unsigned long)limit];
+    NSMutableString *report=[NSMutableString stringWithFormat:@"Rise Insta Runtime Class Report\nBundle ID: %@\nApp Version: %@\nGenerated: %@\nMatching classes: %lu\nExported: %lu\nNames alone do not prove working hooks or server permissions.\n", bundleID,appVersion,[NSDate date],(unsigned long)names.count,(unsigned long)limit];
     for (NSUInteger i=0;i<limit;i++) {
         NSString *name=names[i];
         [report appendFormat:@"\n[%@]\n",name];
