@@ -1,4 +1,5 @@
 #import "RiseInstaDiagnostics.h"
+#import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 @implementation RiseInstaDiagnostics
 + (NSURL *)exportReport:(NSError **)error {
